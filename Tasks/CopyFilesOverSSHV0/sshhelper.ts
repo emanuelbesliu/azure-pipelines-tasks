@@ -53,6 +53,13 @@ export class SshHelper {
         await defer.promise;
     }
 
+    private unixyPath(filepath) {
+        if (process.platform === 'win32') {
+            return filepath.replace(/\\/g, '/');
+        }
+        return filepath;
+    }
+
     /**
      * Sets up the SSH connection
      */
@@ -98,9 +105,7 @@ export class SshHelper {
      * @returns {Promise<string>}
      */
     async uploadFile(sourceFile: string, dest: string) : Promise<string> {
-        if (process.platform === 'win32') {
-            dest = dest.replace(/\\/g, '/');
-        }
+        dest = this.unixyPath(dest);
 
         tl.debug('Upload ' + sourceFile + ' to ' + dest + ' on remote machine.');
 
@@ -142,7 +147,7 @@ export class SshHelper {
         if(!this.sftpClient) {
             defer.reject(tl.loc('ConnectionNotSetup'));
         }
-        if (await this.sftpClient.stat(path)) {
+        if (await this.sftpClient.exsts(path)) {
             //path exists
             defer.resolve(true);
         } else {
